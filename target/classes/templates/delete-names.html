@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>名前を削除</title>
+</head>
+<body>
+    <h1>名前を削除</h1>
+    <form th:action="@{/delete-names}" method="post">
+        <table>
+            <thead>
+                <tr>
+                    <th>名前</th>
+                    <th>削除</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="person : ${persons}">
+                    <td th:text="${person}"></td>
+                    <td><input type="checkbox" name="namesToDelete" th:value="${person}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <button type="submit">削除</button>
+    </form>
+</body>
+</html>

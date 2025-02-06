@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>費目を削除</title>
+</head>
+<body>
+    <h1>費目を削除</h1>
+    <form th:action="@{/delete-categories}" method="post">
+        <table>
+            <thead>
+                <tr>
+                    <th>費目</th>
+                    <th>削除</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="category : ${categories}">
+                    <td th:text="${category}"></td>
+                    <td><input type="checkbox" name="categoriesToDelete" th:value="${category}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <button type="submit">削除</button>
+    </form>
+</body>
+</html>

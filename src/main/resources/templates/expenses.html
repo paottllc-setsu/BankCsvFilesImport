@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>支出一覧</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            table-layout: fixed; /* テーブルのレイアウトを固定 */
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+            white-space: nowrap; /* 改行を防止 */
+        }
+        th.checkbox-column, td.checkbox-column {
+            width: 20px; /* チェックボックス用の列の幅を固定 */
+        }
+        .scroll-table {
+            display: block;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .amount-cell {  
+            text-align: right; 
+        }
+        .action-buttons {
+            float: right;
+        }
+        .edit-checkbox {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>支出一覧
+        <span class="action-buttons">
+            <button id="editButton">編集</button>
+            <button id="deleteButton">削除</button>
+            <button id="executeButton" style="display: none;">実行</button> <!-- 実行ボタン -->
+        </span>
+    </h1>
+    <form th:action="@{/expenses}" method="get">
+        <label for="start">開始日:</label>
+        <select id="start" name="start">
+            <option value="" th:unless="${startDate != ''}">-- 選択してください --</option>
+            <option th:each="date : ${dates}" th:value="${date}" th:text="${date}" th:selected="${date == startDate}"></option>
+        </select>
+        <label for="end">終了日:</label>
+        <select id="end" name="end">
+            <option value="" th:unless="${endDate != ''}">-- 選択してください --</option>
+            <option th:each="date : ${dates}" th:value="${date}" th:text="${date}" th:selected="${date == endDate}"></option>
+        </select>
+        <label for="person">名前:</label>
+        <select id="person" name="person">
+            <option value="">-- 選択してください --</option>
+            <option th:each="person : ${persons}" th:value="${person}" th:text="${person}" th:selected="${person == selectedPerson}"></option>
+        </select>
+        <label for="categoryId">費目:</label>
+        <select id="categoryId" name="categoryId">
+            <option value="">-- 選択してください --</option>
+            <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.categoryName}" th:selected="${category.id == selectedCategoryId}"></option>
+        </select>
+        <button type="submit">表示</button>
+    </form>
+    <form id="actionForm" method="post">
+        <input type="hidden" name="id" value=""> <!-- 隠しフィールド -->
+        <div class="scroll-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="checkbox-column"></th> <!-- チェックボックスの列 -->
+                        <th>日付</th>
+                        <th>名前</th>
+                        <th>費目</th>
+                        <th>品名</th>
+                        <th>金額</th>
+                        <th>お店</th>
+                        <th>メモ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="expense : ${expenses}">
+                        <td class="checkbox-column"><input type="checkbox" class="edit-checkbox" name="expenseId" th:value="${expense.id}"></td>
+                        <td th:text="${expense.formattedDate}"></td>
+                        <td th:text="${expense.person}"></td>
+                        <td th:text="${expense.category.categoryName}"></td>
+                        <td th:text="${expense.itemName}"></td>
+                        <td class="amount-cell" th:text="${expense.amount}"></td>
+                        <td th:text="${expense.store}"></td>
+                        <td th:text="${expense.note}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </form>
+    <button onclick="location.href='/'">ホームに戻る</button>
+    <button onclick="window.open('/new-expense', '_blank', 'width=400,height=600')">新しい支出を追加する</button>
+    <button onclick="window.open('/summary', '_blank', 'width=1300,height=700')">年間集計表</button>
+    <button onclick="location.href='/delete-names'">名前を削除</button>
+    <button onclick="location.href='/delete-categories'">費目を削除</button>
+
+    <!-- 金額表示に,を追加するJS -->
+    <script>
+        function formatAmount(amount) {
+            return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function formatAmounts() {
+            document.querySelectorAll('.amount-cell').forEach(td => {
+                const text = td.textContent;
+                if (!isNaN(text) && text.trim() !== "") {
+                    td.textContent = formatAmount(parseInt(text));
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', formatAmounts);
+    </script>
+
+    <!-- 編集・削除ボタンの処理用JS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let editMode = false;
+            let deleteMode = false;
+
+            document.getElementById("editButton").addEventListener("click", function() {
+                console.log("Edit button clicked"); // デバッグ用
+                editMode = !editMode;
+                deleteMode = false;
+                document.querySelectorAll(".edit-checkbox").forEach(checkbox => {
+                    checkbox.style.display = editMode ? "inline-block" : "none";
+                    checkbox.checked = false; // モード切替時にチェックをクリア
+                });
+                document.getElementById("executeButton").style.display = editMode ? "inline-block" : "none";
+                document.getElementById("actionForm").action = "/update-expense"; // 編集用のアクションURL
+
+                // 編集モード時に1つのチェックボックスのみ選択可能にする
+                document.querySelectorAll(".edit-checkbox").forEach(checkbox => {
+                    checkbox.addEventListener("change", function() {
+                        if (editMode) {
+                            document.querySelectorAll(".edit-checkbox").forEach(otherCheckbox => {
+                                if (otherCheckbox !== checkbox) {
+                                    otherCheckbox.checked = false;
+                                }
+                            });
+                        }
+                    });
+                });
+            });
+
+           document.getElementById("deleteButton").addEventListener("click", function() {
+                console.log("Delete button clicked"); // デバッグ用
+                deleteMode = !deleteMode;
+                editMode = false;
+                document.querySelectorAll(".edit-checkbox").forEach(checkbox => {
+                    checkbox.style.display = deleteMode ? "inline-block" : "none";
+                    checkbox.checked = false; // モード切替時にチェックをクリア
+                });
+                document.getElementById("executeButton").style.display = deleteMode ? "inline-block" : "none";
+                document.getElementById("actionForm").action = "/delete-expenses"; // 削除用のアクションURL
+            });
+
+            document.getElementById("executeButton").addEventListener("click", function(event) {
+                event.preventDefault(); // デフォルトのフォーム送信を一時的に無効化
+                if (editMode) {
+                    const selectedCheckbox = document.querySelector(".edit-checkbox:checked");
+                    if (selectedCheckbox) {
+                        const expenseId = selectedCheckbox.value;
+                        location.href = `/edit-expense?expenseId=${expenseId}`; // `edit-expense.html`に遷移
+                    }
+                } else if (deleteMode) {
+                    document.getElementById("actionForm").submit(); // フォームを送信して削除を実行
+                }
+            });
+        });
+    </script>
+</body>
+</html>

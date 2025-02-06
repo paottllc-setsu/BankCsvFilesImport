@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>年間支出集計表</title>
+    <style>
+	    table, th, td {
+	        border: 1px solid black;
+	        border-collapse: collapse;
+	    }
+	    th, td {
+	        padding: 8px;
+	    }
+	    .header-cell {
+	        text-align: center;
+	    }
+	    .total-cell {
+	        font-weight: bold;
+	    }
+	    .left-header {
+	        text-align: left;
+	    }
+	    .amount-cell {
+	        text-align: right;
+	    }
+	</style>
+    <script>
+        function formatAmount(amount) {
+            return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function formatAmounts() {
+            document.querySelectorAll('.amount-cell').forEach(td => {
+                const text = td.textContent;
+                if (!isNaN(text) && text.trim() !== "") {
+                    td.textContent = formatAmount(parseInt(text));
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', formatAmounts);
+    </script>
+</head>
+<body>
+    <h1>年間支出集計表</h1>
+    <form th:action="@{/summary}" method="get">
+	    <label for="year">年:</label>
+	    <select id="year" name="year">
+	        <option th:each="y : ${T(java.util.stream.IntStream).rangeClosed(2020, T(java.time.Year).now().getValue()).toArray()}"
+	                th:value="${y}" th:text="${y}" th:selected="${y == year}"></option>
+	    </select>
+	    <label for="person">名前:</label>
+		<select id="person" name="person">
+		    <option value="">-- 選択してください --</option>
+		    <option th:each="p : ${persons}" th:value="${p}" th:text="${p}" th:selected="${p == selectedPerson}"></option>
+		</select>
+
+	    <button type="submit">表示</button>
+	</form>
+    <table>
+        <thead>
+		    <tr>
+		        <th></th>
+		        <th class="header-cell" th:text="'20' + ${year.toString().substring(2, 4)} + '-01'"></th>
+		        <th class="header-cell" th:text="'20' + ${year.toString().substring(2, 4)} + '-02'"></th>
+		        <th class="header-cell" th:text="'20' + ${year.toString().substring(2, 4)} + '-03'"></th>
+		        <th class="header-cell" th:text="'20' + ${year.toString().substring(2, 4)} + '-04'"></th>
+		        <th class="header-cell" th:text="'20' + ${year.toString().substring(2, 4)} + '-05'"></th>
+		        <th class="header-cell" th:text="'20' + ${year.toString().substring(2, 4)} + '-06'"></th>
+		        <th class="header-cell" th:text="'20' + ${year.toString().substring(2, 4)} + '-07'"></th>
+		        <th class="header-cell" th:text="'20' + ${year.toString().substring(2, 4)} + '-08'"></th>
+		        <th class="header-cell" th:text="'20' + ${year.toString().substring(2, 4)} + '-09'"></th>
+		        <th class="header-cell" th:text="'20' + ${year.toString().substring(2, 4)} + '-10'"></th>
+		        <th class="header-cell" th:text="'20' + ${year.toString().substring(2, 4)} + '-11'"></th>
+		        <th class="header-cell" th:text="'20' + ${year.toString().substring(2, 4)} + '-12'"></th>
+		        <th class="header-cell">年支出計</th>
+		    </tr>
+		</thead>
+
+        <tbody>
+            <tr>
+			    <td class="left-header">支出合計</td>
+			    <td class="amount-cell" th:text="${monthlyTotals[T(java.time.Month).JANUARY] != null ? monthlyTotals[T(java.time.Month).JANUARY] : 0}"></td>
+			    <td class="amount-cell" th:text="${monthlyTotals[T(java.time.Month).FEBRUARY] != null ? monthlyTotals[T(java.time.Month).FEBRUARY] : 0}"></td>
+			    <td class="amount-cell" th:text="${monthlyTotals[T(java.time.Month).MARCH] != null ? monthlyTotals[T(java.time.Month).MARCH] : 0}"></td>
+			    <td class="amount-cell" th:text="${monthlyTotals[T(java.time.Month).APRIL] != null ? monthlyTotals[T(java.time.Month).APRIL] : 0}"></td>
+			    <td class="amount-cell" th:text="${monthlyTotals[T(java.time.Month).MAY] != null ? monthlyTotals[T(java.time.Month).MAY] : 0}"></td>
+			    <td class="amount-cell" th:text="${monthlyTotals[T(java.time.Month).JUNE] != null ? monthlyTotals[T(java.time.Month).JUNE] : 0}"></td>
+			    <td class="amount-cell" th:text="${monthlyTotals[T(java.time.Month).JULY] != null ? monthlyTotals[T(java.time.Month).JULY] : 0}"></td>
+			    <td class="amount-cell" th:text="${monthlyTotals[T(java.time.Month).AUGUST] != null ? monthlyTotals[T(java.time.Month).AUGUST] : 0}"></td>
+			    <td class="amount-cell" th:text="${monthlyTotals[T(java.time.Month).SEPTEMBER] != null ? monthlyTotals[T(java.time.Month).SEPTEMBER] : 0}"></td>
+			    <td class="amount-cell" th:text="${monthlyTotals[T(java.time.Month).OCTOBER] != null ? monthlyTotals[T(java.time.Month).OCTOBER] : 0}"></td>
+			    <td class="amount-cell" th:text="${monthlyTotals[T(java.time.Month).NOVEMBER] != null ? monthlyTotals[T(java.time.Month).NOVEMBER] : 0}"></td>
+			    <td class="amount-cell" th:text="${monthlyTotals[T(java.time.Month).DECEMBER] != null ? monthlyTotals[T(java.time.Month).DECEMBER] : 0}"></td>
+			    <td class="total-cell amount-cell" th:text="${yearlyTotal}"></td>
+			</tr>
+
+            <tr>
+                <td class="left-header">食費</td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['食費'][T(java.time.Month).JANUARY]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['食費'][T(java.time.Month).FEBRUARY]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['食費'][T(java.time.Month).MARCH]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['食費'][T(java.time.Month).APRIL]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['食費'][T(java.time.Month).MAY]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['食費'][T(java.time.Month).JUNE]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['食費'][T(java.time.Month).JULY]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['食費'][T(java.time.Month).AUGUST]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['食費'][T(java.time.Month).SEPTEMBER]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['食費'][T(java.time.Month).OCTOBER]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['食費'][T(java.time.Month).NOVEMBER]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['食費'][T(java.time.Month).DECEMBER]}"></td>
+                <td class="total-cell amount-cell" th:text="${categoryTotals['食費']}"></td>
+            </tr>
+            <tr>
+                <td class="left-header">生活用品</td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['生活用品'][T(java.time.Month).JANUARY]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['生活用品'][T(java.time.Month).FEBRUARY]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['生活用品'][T(java.time.Month).MARCH]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['生活用品'][T(java.time.Month).APRIL]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['生活用品'][T(java.time.Month).MAY]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['生活用品'][T(java.time.Month).JUNE]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['生活用品'][T(java.time.Month).JULY]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['生活用品'][T(java.time.Month).AUGUST]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['生活用品'][T(java.time.Month).SEPTEMBER]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['生活用品'][T(java.time.Month).OCTOBER]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['生活用品'][T(java.time.Month).NOVEMBER]}"></td>
+                <td class="amount-cell" th:text="${categoryMonthlyTotals['生活用品'][T(java.time.Month).DECEMBER]}"></td>
+                <td class="amount-cell" th:text="${categoryTotals['生活用品']}"></td>
+            </tr>
+	        <tr>
+			    <td class="left-header">衣料・美容</td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['衣料・美容'][T(java.time.Month).JANUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['衣料・美容'][T(java.time.Month).FEBRUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['衣料・美容'][T(java.time.Month).MARCH]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['衣料・美容'][T(java.time.Month).APRIL]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['衣料・美容'][T(java.time.Month).MAY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['衣料・美容'][T(java.time.Month).JUNE]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['衣料・美容'][T(java.time.Month).JULY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['衣料・美容'][T(java.time.Month).AUGUST]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['衣料・美容'][T(java.time.Month).SEPTEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['衣料・美容'][T(java.time.Month).OCTOBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['衣料・美容'][T(java.time.Month).NOVEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['衣料・美容'][T(java.time.Month).DECEMBER]}"></td>
+			    <td class="total-cell amount-cell" th:text="${categoryTotals['衣料・美容']}"></td>
+			</tr>
+            <tr>
+			    <td class="left-header">医療・健康</td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['医療・健康'][T(java.time.Month).JANUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['医療・健康'][T(java.time.Month).FEBRUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['医療・健康'][T(java.time.Month).MARCH]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['医療・健康'][T(java.time.Month).APRIL]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['医療・健康'][T(java.time.Month).MAY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['医療・健康'][T(java.time.Month).JUNE]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['医療・健康'][T(java.time.Month).JULY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['医療・健康'][T(java.time.Month).AUGUST]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['医療・健康'][T(java.time.Month).SEPTEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['医療・健康'][T(java.time.Month).OCTOBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['医療・健康'][T(java.time.Month).NOVEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['医療・健康'][T(java.time.Month).DECEMBER]}"></td>
+			    <td class="total-cell amount-cell" th:text="${categoryTotals['医療・健康']}"></td>
+			</tr>
+            <tr>
+			    <td class="left-header">交通・通信</td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交通・通信'][T(java.time.Month).JANUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交通・通信'][T(java.time.Month).FEBRUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交通・通信'][T(java.time.Month).MARCH]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交通・通信'][T(java.time.Month).APRIL]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交通・通信'][T(java.time.Month).MAY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交通・通信'][T(java.time.Month).JUNE]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交通・通信'][T(java.time.Month).JULY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交通・通信'][T(java.time.Month).AUGUST]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交通・通信'][T(java.time.Month).SEPTEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交通・通信'][T(java.time.Month).OCTOBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交通・通信'][T(java.time.Month).NOVEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交通・通信'][T(java.time.Month).DECEMBER]}"></td>
+			    <td class="total-cell amount-cell" th:text="${categoryTotals['交通・通信']}"></td>
+			</tr>
+            <tr>
+			    <td class="left-header">水・光熱費</td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['水・光熱費'][T(java.time.Month).JANUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['水・光熱費'][T(java.time.Month).FEBRUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['水・光熱費'][T(java.time.Month).MARCH]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['水・光熱費'][T(java.time.Month).APRIL]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['水・光熱費'][T(java.time.Month).MAY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['水・光熱費'][T(java.time.Month).JUNE]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['水・光熱費'][T(java.time.Month).JULY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['水・光熱費'][T(java.time.Month).AUGUST]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['水・光熱費'][T(java.time.Month).SEPTEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['水・光熱費'][T(java.time.Month).OCTOBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['水・光熱費'][T(java.time.Month).NOVEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['水・光熱費'][T(java.time.Month).DECEMBER]}"></td>
+			    <td class="total-cell amount-cell" th:text="${categoryTotals['水・光熱費']}"></td>
+			</tr>
+            <tr>
+			    <td class="left-header">住居</td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['住居'][T(java.time.Month).JANUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['住居'][T(java.time.Month).FEBRUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['住居'][T(java.time.Month).MARCH]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['住居'][T(java.time.Month).APRIL]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['住居'][T(java.time.Month).MAY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['住居'][T(java.time.Month).JUNE]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['住居'][T(java.time.Month).JULY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['住居'][T(java.time.Month).AUGUST]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['住居'][T(java.time.Month).SEPTEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['住居'][T(java.time.Month).OCTOBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['住居'][T(java.time.Month).NOVEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['住居'][T(java.time.Month).DECEMBER]}"></td>
+			    <td class="total-cell amount-cell" th:text="${categoryTotals['住居']}"></td>
+			</tr>
+            <tr>
+			    <td class="left-header">教育</td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['教育'][T(java.time.Month).JANUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['教育'][T(java.time.Month).FEBRUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['教育'][T(java.time.Month).MARCH]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['教育'][T(java.time.Month).APRIL]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['教育'][T(java.time.Month).MAY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['教育'][T(java.time.Month).JUNE]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['教育'][T(java.time.Month).JULY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['教育'][T(java.time.Month).AUGUST]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['教育'][T(java.time.Month).SEPTEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['教育'][T(java.time.Month).OCTOBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['教育'][T(java.time.Month).NOVEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['教育'][T(java.time.Month).DECEMBER]}"></td>
+			    <td class="total-cell amount-cell" th:text="${categoryTotals['教育']}"></td>
+			</tr>
+            <tr>
+			    <td class="left-header">娯楽</td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['娯楽'][T(java.time.Month).JANUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['娯楽'][T(java.time.Month).FEBRUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['娯楽'][T(java.time.Month).MARCH]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['娯楽'][T(java.time.Month).APRIL]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['娯楽'][T(java.time.Month).MAY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['娯楽'][T(java.time.Month).JUNE]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['娯楽'][T(java.time.Month).JULY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['娯楽'][T(java.time.Month).AUGUST]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['娯楽'][T(java.time.Month).SEPTEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['娯楽'][T(java.time.Month).OCTOBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['娯楽'][T(java.time.Month).NOVEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['娯楽'][T(java.time.Month).DECEMBER]}"></td>
+			    <td class="total-cell amount-cell" th:text="${categoryTotals['娯楽']}"></td>
+			</tr>
+            <tr>
+			    <td class="left-header">交際・行事</td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交際・行事'][T(java.time.Month).JANUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交際・行事'][T(java.time.Month).FEBRUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交際・行事'][T(java.time.Month).MARCH]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交際・行事'][T(java.time.Month).APRIL]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交際・行事'][T(java.time.Month).MAY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交際・行事'][T(java.time.Month).JUNE]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交際・行事'][T(java.time.Month).JULY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交際・行事'][T(java.time.Month).AUGUST]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交際・行事'][T(java.time.Month).SEPTEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交際・行事'][T(java.time.Month).OCTOBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交際・行事'][T(java.time.Month).NOVEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['交際・行事'][T(java.time.Month).DECEMBER]}"></td>
+			    <td class="total-cell amount-cell" th:text="${categoryTotals['交際・行事']}"></td>
+			</tr>
+           <tr>
+			    <td class="left-header">その他</td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['その他'][T(java.time.Month).JANUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['その他'][T(java.time.Month).FEBRUARY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['その他'][T(java.time.Month).MARCH]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['その他'][T(java.time.Month).APRIL]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['その他'][T(java.time.Month).MAY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['その他'][T(java.time.Month).JUNE]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['その他'][T(java.time.Month).JULY]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['その他'][T(java.time.Month).AUGUST]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['その他'][T(java.time.Month).SEPTEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['その他'][T(java.time.Month).OCTOBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['その他'][T(java.time.Month).NOVEMBER]}"></td>
+			    <td class="amount-cell" th:text="${categoryMonthlyTotals['その他'][T(java.time.Month).DECEMBER]}"></td>
+			    <td class="total-cell amount-cell" th:text="${categoryTotals['その他']}"></td>
+			</tr>
+        </tbody>
+    </table>
+</body>
+</html>

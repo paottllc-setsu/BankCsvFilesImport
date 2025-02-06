@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>新しい支出</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            max-width: 300px; /* フォームの幅を制限 */
+            width: 100%;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+        label, input, select, button {
+            margin-bottom: 10px;
+        }
+        label {
+            font-weight: bold;
+        }
+        button {
+            padding: 10px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <!--<h1>新しい支出を追加</h1>-->
+    <form th:action="@{/add}" method="post" th:object="${householdAccount}">
+        <label for="date">日付:</label>
+        <input type="date" id="date" th:field="*{date}" required>
+        
+        <label for="person">名前:</label>
+        <input type="text" id="person" th:field="*{person}" required>
+        
+        <label for="category">費目:</label>
+        <select id="category" th:field="*{category}">
+			<option value="">-- 選択してください --</option>
+            <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.categoryName}"></option>
+        </select>
+        
+        <label for="itemName">品名:</label> <!-- 追加 -->
+        <input type="text" id="itemName" th:field="*{itemName}" required> <!-- 追加 -->
+        
+        <label for="amount">金額:</label>
+        <input type="number" id="amount" th:field="*{amount}" required>
+        
+        <label for="store">お店:</label>
+        <input type="text" id="store" th:field="*{store}">
+        
+        <label for="note">メモ:</label>
+        <input type="text" id="note" th:field="*{note}">
+        
+        <button type="submit">追加</button>
+    </form>
+    <p></p>
+    <!--<button onclick="location.href='/'">ホームに戻る</button>
+    <button onclick="location.href='/expenses'">支出一覧</button>-->
+</body>
+</html>

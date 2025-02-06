@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>支出編集</title>
+</head>
+<body>
+    <h1>支出を編集</h1>
+    <form th:action="@{/update-expense}" method="post">
+        <!--input type="hidden" name="id" th:value="${expense.id}"--> <!-- 隠しフィールド -->
+        <input type="hidden" name="id" th:value="${expense != null ? expense.id : ''}">
+
+        <label for="date">日付:</label>
+        <input type="date" id="date" name="date" th:value="${expense.date}">
+        <label for="person">名前:</label>
+        <input type="text" id="person" name="person" th:value="${expense.person}">
+        <label for="category">費目:</label>
+        <select id="category" name="categoryId">
+            <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.categoryName}" th:selected="${category.id == expense.category.id ? 'selected' : ''}"></option>
+        </select>
+        <label for="itemName">品名:</label>
+        <input type="text" id="itemName" name="itemName" th:value="${expense.itemName}">
+        <label for="amount">金額:</label>
+        <input type="number" id="amount" name="amount" th:value="${expense.amount}">
+        <label for="store">お店:</label>
+        <input type="text" id="store" name="store" th:value="${expense.store}">
+        <label for="note">メモ:</label>
+        <input type="text" id="note" name="note" th:value="${expense.note}">
+        <button type="submit">保存</button>
+    </form>
+    <button onclick="location.href='/expenses'">キャンセル</button>
+</body>
+</html>
